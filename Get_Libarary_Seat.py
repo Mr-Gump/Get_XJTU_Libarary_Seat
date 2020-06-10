@@ -6,7 +6,7 @@ pattern = re.compile(r'\d+')
 Cookie = input('请输入Cookie:')
 
 headers = {
-    'Cookie':"_ga=GA1.3.2130042729.1589178267; remember_token=2182310012|4a1ff432914154d035465fe4b2f0789437e97e41f52bce9a6edfcdeb194b450a34f6fc1876bf628ddaadf9f2d7ceeff54bff652544b55a83ade7b83c2d59bcf2; session=.eJxVUdFuozAQ_JXKz9XJmDhtIlW66EgRUtcIRITWLxEhbsDgIyGJAq767zXt6Xr34JeZndnZ8RvZvvbqXJHlpb-qe7Kt92T5Ru52ZEnARAMa0YowbWTW3EQgjbARl9mGQlYyzBJfBsjjPBnj8NmgQSp06YFOKFr0HW4hTzjqhMPE52kFYdoKK3UcRDfQ6xm4OakTD0JgwoIVwcYKvXL6zQ2CxgqbaqEPPA5ki7pthMOFrQxmB7e_HKR2-WzyRN7vSXnuX7eXrlG__56AuawwR19kaCHAUYZAXbwploVs40G-pmDXHDQwMGmN5lnj4enTbq-O0XcZ8yhe8P6U8Jc65njq3NvxnWr5vH7hBTNzaepJpUxRt26ezdhszhfU83-eTj_KzpCJO7bdqJS4mp3qv3ueetAwQLAa4M_y_tgWpXKkKs4XJ72oydTjfMb9B_rAFxPW7YvxH5fVCL_oTdR0gNWXy_Ws-s8fJcx7ZL5HqceccLiqquj-R98_ANL-ono.EcIf4g.BUjXMlzMESR5UEnReof2zjhK4JM"
+    'Cookie':Cookie
 }
 
 url = "http://rg.lib.xjtu.edu.cn:8010/qseat?sp=north2east"
@@ -68,6 +68,16 @@ def get_available_seats():
             get_seat(name,available_seats)
     return available_seats
 
+def refresh():
+    for i in range(60*6):
+        code = get_my_status()
+        time.sleep(0.5)
+        cancel_seat(code)
+        time.sleep(0.5)
+        msg = choose_seat(available_seats_list[index-1][0],available_seats_list[index-1][1])
+        print()
+        print(msg[3:])
+
 flag = 0
 while(True):
     if flag == 0 :
@@ -89,17 +99,16 @@ while(True):
                 continue
             else :
                 flag = 1
+                get_my_status()
                 print('正在锁定座位...请勿关闭')
         else :
             print('当前无空位!')
+    time.sleep(29*60)
+    refresh()
         
-    code = get_my_status()
-    time.sleep(0.5)
-    cancel_seat(code)
-    time.sleep(0.5)
-    msg = choose_seat(available_seats_list[index-1][0],available_seats_list[index-1][1])
-    print()
-    print(msg[3:])
+    
+
+
     
 
  
