@@ -69,14 +69,18 @@ def get_available_seats():
     return available_seats
 
 def refresh():
-    for i in range(120):
-        code = get_my_status()
-        time.sleep(1)
-        cancel_seat(code)
-        time.sleep(1)
-        msg = choose_seat(available_seats_list[index-1][0],available_seats_list[index-1][1])
-        print()
-        print(msg[3:])
+    for i in range(60):
+        try:
+            code = get_my_status()
+            time.sleep(1)
+            cancel_seat(code)
+            time.sleep(1)
+            msg = choose_seat(available_seats_list[index-1][0],available_seats_list[index-1][1])
+            print()
+            print(msg[3:])
+        except:
+            pass
+    print('正在锁定座位...请勿关闭')
 
 flag = 0
 while(True):
