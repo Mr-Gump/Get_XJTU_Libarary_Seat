@@ -1,6 +1,9 @@
 import sys
 import time
 import re
+import os
+import logging
+import argparse
 from typing import Dict, List, Tuple, Optional
 
 import requests
@@ -20,6 +23,23 @@ except Exception:
     DEFAULT_HTML_PARSER = "html.parser"
 
 CODE_REGEX = re.compile(r"\d+")
+
+LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+
+def configure_logging(log_level: str) -> None:
+    level_map = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+    }
+    logging.basicConfig(level=level_map.get(log_level, logging.INFO), format=LOG_FORMAT)
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="图书馆抢座程序")
+    parser.add_argument("--cookie", help="Cookie 字符串，可用 LIB_SEAT_COOKIE 环境变量替代")
+    parser.add_argument("--log-level", default="info", choices=["debug", "info", "warning", "error"], help="日志级别")
+    return parser.parse_args()
 
 
 class LibraryClient:
@@ -153,7 +173,7 @@ def get_all_available_seats(client: LibraryClient) -> List[Tuple[str, str]]:
                 for seat in seats:
                     available.append((room, seat))
             except Exception as exc:
-                print(f"获取房间 {room} 座位失败: {exc}")
+                logging.warning("获取房间 %s 座位失败: %s", room, exc)
 
     return available
 
@@ -198,20 +218,22 @@ def maintain_lock(client: LibraryClient, room: str, seat: str,
                 try:
                     client.cancel_seat(ri_code)
                 except Exception as exc:
-                    print(f"取消座位失败: {exc}")
+                    logging.error("取消座位失败: %s", exc)
                 time.sleep(step_seconds)
                 try:
                     msg = client.choose_seat(room, seat)
                     print(clean_message(msg))
                 except Exception as exc:
-                    print(f"重新选座失败: {exc}")
+                    logging.error("重新选座失败: %s", exc)
             else:
                 time.sleep(step_seconds)
         print("正在锁定座位...请勿关闭")
 
 
 def main() -> None:
-    cookie = input("请输入Cookie:")
+    args = parse_args()
+    configure_logging(args.log_level)
+    cookie = args.cookie or os.environ.get("LIB_SEAT_COOKIE") or input("请输入Cookie:")
     client = LibraryClient(cookie=cookie)
 
     print("正在获取空余座位列表...")
@@ -219,7 +241,7 @@ def main() -> None:
         try:
             available_seats = get_all_available_seats(client)
         except Exception as exc:
-            print(f"获取座位信息失败，将重试: {exc}")
+            logging.warning("获取座位信息失败，将重试: %s", exc)
             time.sleep(3)
             continue
 
